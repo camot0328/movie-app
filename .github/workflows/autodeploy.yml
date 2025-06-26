@@ -50,7 +50,6 @@ jobs:
             docker stop react || true
             docker rm react || true
             docker rmi ${{ secrets.DOCKER_USER }}/web-app:mixed || true
-            docker pull ${{ secrets.DOCKER_USER }}/web-app:mixed
             docker run -d -p 80:80 --name react ${{ secrets.DOCKER_USER }}/web-app:mixed
             echo "배포가 완료되었습니다."
           script_stop: true
