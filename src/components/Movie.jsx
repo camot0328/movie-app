@@ -6,6 +6,7 @@ return (
 <div className="movie">
 <img src={coverImage} alt="cover_image" />
 <h2>{title} : {id}</h2>
+<br></br>
 <p>{summary}</p>
 </div>
 </>
