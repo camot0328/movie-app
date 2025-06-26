@@ -1,0 +1,56 @@
+name: frontend-autodeploy
+
+on: 
+  push:
+    branches:
+      - main
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: git repository 가져오기
+        uses: actions/checkout@v4
+
+      - name: node.js 설치하기
+        uses: actions/setup-node@v3
+        with:
+          node-version: '23'
+
+      - name: 실행파일 빌드하기
+        run: npm install
+
+      - name: 빌드 실행하기
+        run: npm run build
+
+      - name: 도커 이미지 빌드하기
+        run: docker build -t ${{ secrets.DOCKER_USER }}/web-app:mixed .
+
+      - name: docker login
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKER_USER }}
+          password: ${{ secrets.DOCKER_KEY }}
+
+      - name: 도커 이미지 푸시하기
+        run: docker push ${{ secrets.DOCKER_USER }}/web-app:mixed
+
+  deploy:
+    runs-on: ubuntu-latest
+    needs: build
+    steps:
+      - name: EC2 인스턴스에 SSH 접속하기
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ${{ secrets.EC2_USER }}
+          key: ${{ secrets.EC2_KEY }}
+          script: |
+            docker stop react || true
+            docker rm react || true
+            docker rmi ${{ secrets.DOCKER_USER }}/web-app:mixed || true
+            docker pull ${{ secrets.DOCKER_USER }}/web-app:mixed
+            docker run -d -p 80:80 --name react ${{ secrets.DOCKER_USER }}/web-app:mixed
+            echo "배포가 완료되었습니다."
+          script_stop: true
