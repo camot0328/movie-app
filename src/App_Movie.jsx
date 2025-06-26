@@ -19,7 +19,7 @@ function App() {
     <>
       <h1>Movie App !</h1>
       {isLoading ? (
-        "로딩중..."
+        "로딩중...."
       ) : (
         <div>
           {movies.map((movie) => (
